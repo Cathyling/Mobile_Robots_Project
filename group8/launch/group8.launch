@@ -1,0 +1,175 @@
+<launch>
+  <arg name="joy_config" default="ps3" />
+  <arg name="joy_dev" default="/dev/input/js0" />
+  <arg name="config_filepath" default="$(find teleop_twist_joy)/config/$(arg joy_config).config.yaml" />
+  
+  <node pkg="joy" type="joy_node" name="joy_node">
+    <param name="dev" value="$(arg joy_dev)" />
+    <param name="deadzone" value="0.3" />
+    <param name="autorepeat_rate" value="20" />
+  </node>
+
+  <node pkg="teleop_twist_joy" name="teleop_twist_joy" type="teleop_node">
+    <rosparam command="load" file="$(arg config_filepath)" />
+    <param name="enable_button" value="5" />
+  </node>
+
+  <node pkg="rosaria" name="RosAria" type="RosAria">
+    <remap from="/RosAria/cmd_vel" to="/cmd_vel" />
+    <param name="~port" value="/dev/ttyS1" />
+    <remap from="tf" to="RosAria/tf" />
+  </node>
+
+  <node pkg="group8" name="cov" type="covariance.py"/>
+  <node pkg="group8" name="imu_cov" type="imu.py"/>
+
+  <node pkg="nmea_navsat_driver" name="nmea_navsat_driver" type="nmea_serial_driver" >
+    <param name="~port" value="/dev/ttyACM0" />
+    <param name="~baud" value="9600" />
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 base_footprint imu 100 " />
+
+  <node pkg="nodelet" type="nodelet" name="imu_manager"
+    args="manager" output="screen" />
+
+  #### Spatial Driver #######################################################
+
+  <node pkg="nodelet" type="nodelet" name="PhidgetsSpatialNodelet"
+    args="load phidgets_spatial/PhidgetsSpatialNodelet imu_manager"
+    output="screen">
+
+    # See README.md for more information on the parameters
+
+    # optional param serial, default is -1
+    <!-- <param name="serial" value="123456"/> -->
+
+    # optional param hub_port, used if connected to a VINT hub
+    <!-- <param name="hub_port" value="0"/> -->
+
+    # optional param frame_id, default is "imu_link"
+    <!-- <param name="frame_id" value="imu_link"/> -->
+
+    # optional param linear_acceleration_stdev, default is 280ug
+    <!-- <param name="linear_acceleration_stdev" value="0.002745862"/> -->
+
+    # optional param angular_velocity_stdev, default is 0.095 deg/s
+    <!-- <param name="angular_velocity_stdev" value="0.000349" /> -->
+
+    # optional param magnetic_field_stdev, default is 1.1 milligauss
+    <!-- <param name="magnetic_field_stdev" type="double" value="1.1e-7" /> -->
+
+    # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
+    <param name="data_interval_ms" value="4"/>
+
+    # optional param publish_rate, defaults to 0
+    <!-- <param name="publish_rate" value="0" /> -->
+
+    # compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)
+    <!-- <param name="cc_mag_field" value="0.52859"/>
+         <param name="cc_offset0" value="0.03921"/>
+         <param name="cc_offset1" value="0.19441"/>
+         <param name="cc_offset2" value="-0.03493"/>
+         <param name="cc_gain0" value="1.81704"/>
+         <param name="cc_gain1" value="1.81028"/>
+         <param name="cc_gain2" value="2.04819"/>
+         <param name="cc_t0" value="0.00142"/>
+         <param name="cc_t1" value="-0.03591"/>
+         <param name="cc_t2" value="0.00160 "/>
+         <param name="cc_t3" value="-0.05038"/>
+         <param name="cc_t4" value="-0.03942"/>
+         <param name="cc_t5" value="-0.05673"/> -->
+  </node>
+
+  <node name="gps_conv" pkg="gps_common" type="utm_odometry_node">
+    <remap from="odom" to="vo"/>
+    <param name="rot_covariance" value="99999" />
+    <param name="frame_id" value="base_footprint" />
+  </node>
+
+  <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+    <param name="output_frame" value="odom"/>
+    <param name="base_footprint_frame" value="imu_link"/>
+    <param name="freq" value="30.0"/>
+    <param name="sensor_timeout" value="1.0"/>
+    <param name="odom_used" value="true"/>
+    <param name="imu_used" value="true"/>
+    <param name="vo_used" value="true"/>
+    <param name="debug" value="false"/>
+    <param name="self_diagnose" value="false"/>
+    <remap from="imu_data" to="imu/data"/>
+    <remap from="odom" to="/pose"/>
+  
+  </node>
+
+    <!-- <args for urdf/> -->
+    <arg name="camera_model"      default="OAK-D" /> <!-- 'zed' or 'zedm' -->
+    <arg name="tf_prefix"         default="oak" />
+    <arg name="mode"              default="depth" />
+    <arg name="base_frame"        default="oak-d_frame" />
+    <arg name="parent_frame"      default="oak-d-base-frame" />
+
+    <arg name="cam_pos_x"         default="0.0" /> <!-- Position respect to base frame (i.e. "base_link) -->
+    <arg name="cam_pos_y"         default="0.0" /> <!-- Position respect to base frame (i.e. "base_link) -->
+    <arg name="cam_pos_z"         default="0.0" /> <!-- Position respect to base frame (i.e. "base_link) -->
+    <arg name="cam_roll"          default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
+    <arg name="cam_pitch"         default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
+    <arg name="cam_yaw"           default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
+    
+    <arg name="confidence"        default="200" /> 
+    <arg name="LRchecktresh"      default="5" /> 
+    <arg name="lrcheck"           default="true" /> 
+    <arg name="extended"          default="false" /> 
+    <arg name="subpixel"          default="true" />
+    <arg name="monoResolution"    default="720p" /> 
+    <arg name="camera_param_uri"  default="package://depthai_examples/params/camera" />
+
+   
+    <include file="$(find depthai_bridge)/launch/urdf.launch">
+        <arg name="base_frame"      value="$(arg  base_frame)"  />
+        <arg name="parent_frame"    value="$(arg  parent_frame)"/>
+        <arg name="camera_model"    value="$(arg  camera_model)"/>
+        <arg name="tf_prefix"       value="$(arg  tf_prefix)" />
+        <arg name="cam_pos_x"       value="$(arg  cam_pos_x)"   />
+        <arg name="cam_pos_y"       value="$(arg  cam_pos_y)"   />
+        <arg name="cam_pos_z"       value="$(arg  cam_pos_z)"   />
+        <arg name="cam_roll"        value="$(arg  cam_roll)"    />
+        <arg name="cam_pitch"       value="$(arg  cam_pitch)"   />
+        <arg name="cam_yaw"         value="$(arg  cam_yaw)"     />
+    </include>
+
+    <!-- launch-prefix="xterm -e gdb (add [- - args] without space) -->
+    <node name="stereo_publisher" pkg="depthai_examples" type="stereo_node" output="screen" required="true">
+        <param name="tf_prefix"        value="$(arg tf_prefix)"/>
+        <param name="camera_param_uri" value="$(arg camera_param_uri)"/>
+        <param name="mode"             value="$(arg mode)"/>
+        <param name="lrcheck"          value="$(arg lrcheck)"/>
+        <param name="extended"         value="$(arg extended)"/>
+        <param name="subpixel"         value="$(arg subpixel)"/>
+        <param name="confidence"       value="$(arg confidence)"/>
+        <param name="LRchecktresh"     value="$(arg LRchecktresh)"/>
+        <param name="monoResolution"   value="$(arg monoResolution)"/>
+    </node>            
+
+    <node type="rviz" name="rviz2" pkg="rviz" args="-d $(find depthai_examples)/rviz/stereoPointCloud_v1.rviz" />
+
+  <node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan">
+
+    <remap from="/image" to="/stereo_publisher/stereo/depth"/> 
+
+    <remap from="/camera_info" to="/stereo_publisher/stereo/camera_info"/> 
+    <remap from="/scan" to="/hokuyo_scan" />
+    <!-- the remap for camera_info by default uses the same path as the one given to the image topic. Default: "<path_to_image_topic>/camera_info>" -->
+
+    <!-- PARAMETERS: -->
+    <!-- These are the default values. --> 
+    <param name="scan_height"     type="int"    value="1"/> <!-- default: 1 pixel. Number of pixel rows used to generate laser scan. -->
+    <param name="scan_time"       type="double" value="0.033"/> <!-- default:0.033, 30 FPS . Time between scans. -->
+    <param name="range_min"       type="double" value="0.45"/> <!--default:0.45m. Ranges less than this are considered -Inf. -->
+    <param name="range_max"       type="double" value="10.0"/> <!--default: 10m. Ranges less than this are considered +Inf. -->
+    <param name="output_frame_id" type="str"    value="camera_depth_frame"/> <!--default: camera_depth_frame. Frame id of the laser scan. -->
+	
+  </node>
+
+
+</launch>
