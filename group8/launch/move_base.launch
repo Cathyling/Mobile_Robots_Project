@@ -32,7 +32,7 @@
 
         <!-- Remap into namespace for cmd_vel_mux switching -->
         <!-- <remap from="cmd_vel" to="~cmd_vel" /> -->
-        <!-- <remap from="odom" to="~odom" /> -->
+        <remap from="odom" to="/robot_pose_ekf/odom_combined" />
     
     </node>
 

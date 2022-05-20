@@ -1,0 +1,3 @@
+<launch>
+   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find group8)/launch/navigation.rviz"/>
+</launch>
