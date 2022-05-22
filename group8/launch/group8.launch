@@ -17,6 +17,7 @@
   <node pkg="rosaria" name="RosAria" type="RosAria">
     <remap from="/RosAria/cmd_vel" to="/cmd_vel" />
     <param name="~port" value="/dev/ttyS1" />
+    <param name="base_link_frame" value="/RosAria/base_link" />
   </node>
 
   <node pkg="group8" name="cov" type="covariance.py"/>
@@ -99,7 +100,7 @@
     <param name="self_diagnose" value="false"/>
     <remap from="imu_data" to="imu/data"/>
     <remap from="odom" to="/pose"/>
-  
+    <remap from="robot_pose_ekf/odom_combined" to="odom_wrong"/>
   </node>
   
       <!-- <args for urdf/> -->
@@ -172,8 +173,8 @@
   </node>
   <node pkg="tf" type="static_transform_publisher" name="depthimage_to_laserscan_tf" args="0 0 0 0 0 0 1 oak-d-frame camera_depth_optical_frame 100" />
   
-  <node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="0 0 0 0 0 0 1 odom camera_depth_optical_frame 100 " />
+  <node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="0 0 0 0 0 0 1 base_link camera_depth_optical_frame 100 " />
 
-	
+  <node pkg="group8" type="odom_fix.py" name="odom_fix" />
 
 </launch>
