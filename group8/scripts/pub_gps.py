@@ -20,7 +20,7 @@ while not rospy.is_shutdown():
     goal.header.frame_id = "base_link"
     goal.latitude = -31.9804702
     goal.longitude = 115.8171341
-    goal.altitude = 18.0857863
+    goal.altitude = 0# 18.0857863
     goal.position_covariance=cov
     pub.publish(goal)
     rate.sleep()

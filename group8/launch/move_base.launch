@@ -36,4 +36,7 @@
     
     </node>
 
+    <!-- <node pkg="tf" type="static_transform_publisher" name="map_broadcaster" args="0 0 0 0 0 0 1 map base_link 1000 " /> -->
+
+
 </launch>

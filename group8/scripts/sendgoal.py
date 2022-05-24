@@ -17,14 +17,14 @@ def movebase_client():
             x = utm_coord[0]
             y = utm_coord[1]
         # Create an action client called "move_base" with action definition file "MoveBaseAction"
-            client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
+            client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         
         # Waits until the action server has started up and started listening for goals.
             client.wait_for_server()
 
         # Creates a new goal with the MoveBaseGoal constructor
             goal = MoveBaseGoal()
-            goal.target_pose.header.frame_id = "map"
+            goal.target_pose.header.frame_id = "robot_pose_ekf/odom_combined"
             goal.target_pose.header.stamp = rospy.Time.now()
         # Move 0.5 meters forward along the x axis of the "map" coordinate frame 
             goal.target_pose.pose.position.x = x
@@ -42,6 +42,7 @@ def movebase_client():
                 rospy.signal_shutdown("Action server not available!")
             else:
             # Result of executing the action
+                continue
                 return client.get_result()                                              
 
 # If the python node is executed as main process (sourced directly)
