@@ -1,5 +1,114 @@
+<?xml version="1.0"?>
 <launch>
-    <!-- <args for urdf/> -->
+  <arg name="joy_config" default="ps3" />
+  <arg name="joy_dev" default="/dev/input/js0" />
+  <arg name="config_filepath" default="$(find teleop_twist_joy)/config/$(arg joy_config).config.yaml" />
+  
+  <node pkg="group8" type="pub_gps.py" name="pub_gps"/>
+
+  <node pkg="joy" type="joy_node" name="joy_node">
+    <param name="dev" value="$(arg joy_dev)" />
+    <param name="deadzone" value="0.3" />
+    <param name="autorepeat_rate" value="20" />
+  </node>
+
+  <node pkg="teleop_twist_joy" name="teleop_twist_joy" type="teleop_node">
+    <rosparam command="load" file="$(arg config_filepath)" />
+    <param name="enable_button" value="5" />
+  </node>
+
+  <node pkg="rosaria" name="RosAria" type="RosAria">
+    <remap from="/RosAria/cmd_vel" to="/cmd_vel" />
+    <param name="~port" value="/dev/ttyS1" />
+    <param name="base_link_frame" value="/RosAria/base_link" />
+  </node>
+
+  <node pkg="group8" name="cov" type="covariance.py"/>
+  <node pkg="group8" name="imu_cov" type="imu.py"/>
+
+  <node pkg="nmea_navsat_driver" name="nmea_navsat_driver" type="nmea_serial_driver" >
+    <param name="~port" value="/dev/ttyACM0" />
+    <param name="~baud" value="9600" />
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 base_link imu_link 100 " />
+  <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="0 0 0 0 0 0 1 base_link oak-d-base-frame 100 " />
+
+  <node pkg="nodelet" type="nodelet" name="imu_manager"
+    args="manager" output="screen" />
+
+  #### Spatial Driver #######################################################
+
+  <node pkg="nodelet" type="nodelet" name="PhidgetsSpatialNodelet"
+    args="load phidgets_spatial/PhidgetsSpatialNodelet imu_manager"
+    output="screen">
+
+    # See README.md for more information on the parameters
+
+    # optional param serial, default is -1
+    <!-- <param name="serial" value="123456"/> -->
+
+    # optional param hub_port, used if connected to a VINT hub
+    <!-- <param name="hub_port" value="0"/> -->
+
+    # optional param frame_id, default is "imu_link"
+    <!-- <param name="frame_id" value="imu_link"/> -->
+
+    # optional param linear_acceleration_stdev, default is 280ug
+    <!-- <param name="linear_acceleration_stdev" value="0.002745862"/> -->
+
+    # optional param angular_velocity_stdev, default is 0.095 deg/s
+    <!-- <param name="angular_velocity_stdev" value="0.000349" /> -->
+
+    # optional param magnetic_field_stdev, default is 1.1 milligauss
+    <!-- <param name="magnetic_field_stdev" type="double" value="1.1e-7" /> -->
+
+    # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
+    <param name="data_interval_ms" value="4"/>
+
+    # optional param publish_rate, defaults to 0
+    <!-- <param name="publish_rate" value="0" /> -->
+
+    # compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)
+    <!-- <param name="cc_mag_field" value="0.52859"/>
+         <param name="cc_offset0" value="0.03921"/>
+         <param name="cc_offset1" value="0.19441"/>
+         <param name="cc_offset2" value="-0.03493"/>
+         <param name="cc_gain0" value="1.81704"/>
+         <param name="cc_gain1" value="1.81028"/>
+         <param name="cc_gain2" value="2.04819"/>
+         <param name="cc_t0" value="0.00142"/>
+         <param name="cc_t1" value="-0.03591"/>
+         <param name="cc_t2" value="0.00160 "/>
+         <param name="cc_t3" value="-0.05038"/>
+         <param name="cc_t4" value="-0.03942"/>
+         <param name="cc_t5" value="-0.05673"/> -->
+  </node>
+
+  <node name="gps_conv" pkg="gps_common" type="utm_odometry_node">
+    <remap from="fix" to="gps_coord"/>
+    <remap from="odom" to="gps"/>
+    <param name="rot_covariance" value="99999" />
+    <param name="frame_id" value="base_footprint" />
+  </node>
+
+  <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+    <param name="output_frame" value="robot_pose_ekf/odom_combined"/>
+    <param name="base_footprint_frame" value="base_link"/>
+    <param name="freq" value="30.0"/>
+    <param name="sensor_timeout" value="1.0"/>
+    <param name="odom_used" value="true"/>
+    <param name="imu_used" value="true"/>
+    <param name="vo_used" value="false"/>
+    <param name="gps_used" value="true"/>
+    <param name="debug" value="false"/>
+    <param name="self_diagnose" value="false"/>
+    <remap from="imu_data" to="imu/data"/>
+    <remap from="odom" to="/pose"/>
+    <remap from="robot_pose_ekf/odom_combined" to="odom_wrong"/>
+  </node>
+  
+      <!-- <args for urdf/> -->
     <arg name="camera_model"      default="OAK-D" /> <!-- 'zed' or 'zedm' -->
     <arg name="tf_prefix"         default="oak" />
     <arg name="mode"              default="depth" />
@@ -67,9 +176,12 @@
     <param name="output_frame_id" type="str"    value="camera_depth_optical_frame"/> <!--default: camera_depth_frame. Frame id of the laser scan. -->
 	
   </node>
-  <node pkg="tf" type="static_transform_publisher" name="depthimage_to_laserscan_tf" args="0 0 0 0 0 0 1 oak-d-frame camera_depth_optical_frame 100" />
+  <!-- <node pkg="tf" type="static_transform_publisher" name="depthimage_to_laserscan_tf" args="0 0 0 0 0 0 1 oak-d-frame camera_depth_optical_frame 100" /> -->
   
-  <node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="0 0 0 0 0 0 1 odom camera_depth_optical_frame 100 " />
+  <node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="0 0 0 0 0 0 1 base_link camera_depth_optical_frame 1000 " />
 
-	
+  <node pkg="group8" type="odom_fix.py" name="odom_fix" />
+  
+  <node pkg="group8" type="sendgoal.py" name="send_goal" />
+
 </launch>
