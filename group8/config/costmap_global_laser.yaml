@@ -1,4 +1,4 @@
-global_frame: robot_pose_ekf/odom_combined
+global_frame: map
 rolling_window: true
 track_unknown_space: true
 

@@ -86,8 +86,8 @@
   </node>
 
   <node name="gps_conv" pkg="gps_common" type="utm_odometry_node">
-    <remap from="fix" to="gps_coord"/>
     <remap from="odom" to="gps"/>
+    <remap from="fix" to="gps_coord"/>
     <param name="rot_covariance" value="99999" />
     <param name="frame_id" value="base_footprint" />
   </node>
@@ -180,8 +180,6 @@
   
   <node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="0 0 0 0 0 0 1 base_link camera_depth_optical_frame 1000 " />
 
-  <node pkg="group8" type="odom_fix.py" name="odom_fix" />
-  
-  <node pkg="group8" type="sendgoal.py" name="send_goal" />
+  <node pkg="group8" type="odom_fix.py" name="odom_fix" />  
 
 </launch>
