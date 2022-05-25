@@ -16,6 +16,7 @@ def movebase_client():
             utm_coord = utm.from_latlon(point[0], point[1])
             x = utm_coord[0]
             y = utm_coord[1]
+            print(x, y)
         # Create an action client called "move_base" with action definition file "MoveBaseAction"
             client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         
