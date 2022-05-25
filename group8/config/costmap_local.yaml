@@ -1,4 +1,4 @@
-global_frame: robot_pose_ekf/odom_combined
+global_frame: odom_combined
 rolling_window: true
 
 plugins:

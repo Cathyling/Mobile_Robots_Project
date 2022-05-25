@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="group8" name="sendgoal" type="sendgoal.py"/>
+</launch>

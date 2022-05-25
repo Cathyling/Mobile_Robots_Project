@@ -12,8 +12,10 @@ vals = [0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01]
 def callback(msg):
     odom = Odometry()
     odom.header = msg.header
-    odom.child_frame_id = "0"
+    odom.header.frame_id = "odom"
+    odom.child_frame_id = "base_link"
     odom.pose = msg.pose
+    odom.pose.pose.position.z = 0
     
     odom.twist = TwistWithCovariance()
     odom.twist.twist = Twist()
@@ -21,7 +23,10 @@ def callback(msg):
     pub.publish(odom)
 
 rospy.init_node("covariance")
-sub = rospy.Subscriber("/odom_wrong", PoseWithCovarianceStamped, callback)
-pub = rospy.Publisher("/robot_pose_ekf/odom_combined", Odometry, queue_size=2)
+sub = rospy.Subscriber("/robot_pose_ekf/odom_combined", PoseWithCovarianceStamped, callback)
+pub = rospy.Publisher("/odom_combined", Odometry, queue_size=2)
 
 rospy.spin()
+
+
+
