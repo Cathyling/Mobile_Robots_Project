@@ -1,0 +1,13 @@
+<launch>
+  <env name="ROSCONSOLE_FORMAT" value="[${severity}][${thread}][${node}/${function}:${line}]: ${message}"/>
+
+  <node pkg="gps_goal" type="gps_goal" name="gps_goal" output="screen">
+    <param name="frame_id" value="base_link"/>
+    <param name="lat" value="-31.98047015036711"/>
+    <param name="long" value="115.817134126657"/>
+    <!-- INPUT TOPICS -->
+    <remap from="gps_goal_pose" to="gps_goal_pose" />
+    <remap from="gps_goal_fix" to="gps_goal_fix" />
+    <remap from="local_xy_origin" to="auto" />
+  </node>
+</launch>
