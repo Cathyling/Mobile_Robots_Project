@@ -19,6 +19,7 @@
     <remap from="/RosAria/cmd_vel" to="/cmd_vel" />
     <param name="~port" value="/dev/ttyS1" />
     <param name="base_link_frame" value="/RosAria/base_link" />
+    <param name="odom_frame" value="base_link" />
   </node>
 
   <node pkg="group8" name="cov" type="covariance.py"/>
