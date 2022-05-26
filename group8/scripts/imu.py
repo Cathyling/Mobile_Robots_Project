@@ -6,7 +6,7 @@ from geometry_msgs.msg import Quaternion
 
 #vals = [-1,0,0,0,0,0,0,0,0]
 
-vals = [0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01]
+vals = [-1, 0, 0, 0, 0.01, 0, 0, 0, 0.01]
 
 def callback(msg):
     msg.orientation_covariance = vals
